@@ -78,6 +78,8 @@ export interface DomainEvent {
     protected raiseEvent(event: DomainEvent): void {
       this._uncommittedEvents.push(event);
       this.applyEvent(event);
+
+      this._version = event.version;
     }
   
     /**
