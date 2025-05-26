@@ -271,26 +271,22 @@ export class TaskAggregate extends AggregateRoot {
    * @param event 適用するイベント
    */
   protected applyEvent(event: DomainEvent): void {
-    const taskEvent = event as TaskEvent;
-
-    switch (taskEvent.eventType) {
+    switch (event.eventType) {
       case 'TaskCreated':
-        this.applyTaskCreatedEvent(taskEvent as TaskCreatedEvent);
+        this.applyTaskCreatedEvent(event as TaskCreatedEvent);
         break;
       case 'TaskCompleted':
-        this.applyTaskCompletedEvent(taskEvent as TaskCompletedEvent);
+        this.applyTaskCompletedEvent(event as TaskCompletedEvent);
         break;
       case 'TaskCancelled':
-        this.applyTaskCancelledEvent(taskEvent as TaskCancelledEvent);
+        this.applyTaskCancelledEvent(event as TaskCancelledEvent);
         break;
       case 'TaskUpdated':
-        this.applyTaskUpdatedEvent(taskEvent as TaskUpdatedEvent);
+        this.applyTaskUpdatedEvent(event as TaskUpdatedEvent);
         break;
       default:
-        throw new Error(`Unknown event type: ${taskEvent}`);
+        throw new Error(`Unknown event type: ${event.eventType}`);
     }
-
-    this._version = event.version;
   }
 
   private applyTaskCreatedEvent(event: TaskCreatedEvent): void {
