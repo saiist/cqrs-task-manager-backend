@@ -42,8 +42,20 @@ export class TaskService {
         data.createdBy
       );
 
+      console.log('After createNew:', {
+        taskId: task.id,
+        version: task.version,
+        uncommittedEventsCount: task.getUncommittedEvents().length
+      });
+
       // save()前にイベントを取得
       const uncommittedEvents = task.getUncommittedEvents();
+
+      console.log('Before save:', {
+        expectedVersion: task.version - uncommittedEvents.length,
+        currentVersion: task.version,
+        uncommittedEventsLength: uncommittedEvents.length
+      });
 
       // 集約を保存
       await this.taskRepository.save(task);

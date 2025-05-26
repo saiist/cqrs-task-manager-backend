@@ -31,45 +31,50 @@ export class EventSourcedTaskRepository implements TaskRepository {
      */
     async save(task: TaskAggregate): Promise<void> {
         const uncommittedEvents = task.getUncommittedEvents();
-
+    
         if (uncommittedEvents.length === 0) {
-            Logger.debug('No events to save for task', { taskId: task.id });
-            return;
+          Logger.debug('No events to save for task', { taskId: task.id });
+          return;
         }
-
-        Logger.debug('Saving task aggregate', {
+    
+        try {
+          // 新しい集約かどうかをチェック
+          const isNewAggregate = task.version === uncommittedEvents.length;
+          const expectedVersion = isNewAggregate ? 0 : task.version - uncommittedEvents.length;
+    
+          Logger.debug('Saving task aggregate', {
             taskId: task.id,
             currentVersion: task.version,
             uncommittedEventCount: uncommittedEvents.length,
-            expectedVersion: task.version - uncommittedEvents.length
-        });
-
-        try {
-            // Event Storeにイベントを保存
-            await this.eventStore.saveEvents(
-                task.id,
-                uncommittedEvents,
-                task.version - uncommittedEvents.length // 期待するバージョン
-            );
-
-            // 未コミットイベントをクリア
-            task.markEventsAsCommitted();
-
-            Logger.info('Task aggregate saved successfully', {
-                taskId: task.id,
-                eventCount: uncommittedEvents.length,
-                newVersion: task.version
-            });
-
+            isNewAggregate: isNewAggregate,
+            expectedVersion: expectedVersion
+          });
+    
+          // Event Storeにイベントを保存
+          await this.eventStore.saveEvents(
+            task.id,
+            uncommittedEvents,
+            expectedVersion
+          );
+    
+          // 未コミットイベントをクリア
+          task.markEventsAsCommitted();
+    
+          Logger.info('Task aggregate saved successfully', {
+            taskId: task.id,
+            eventCount: uncommittedEvents.length,
+            newVersion: task.version
+          });
+    
         } catch (error) {
-            Logger.error('Failed to save task aggregate', {
-                taskId: task.id,
-                eventCount: uncommittedEvents.length,
-                error: error instanceof Error ? error.message : error
-            });
-            throw error;
+          Logger.error('Failed to save task aggregate', {
+            taskId: task.id,
+            eventCount: uncommittedEvents.length,
+            error: error instanceof Error ? error.message : error
+          });
+          throw error;
         }
-    }
+      }
 
     /**
      * IDでタスク集約を取得
