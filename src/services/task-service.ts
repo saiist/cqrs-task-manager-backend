@@ -1,4 +1,3 @@
-
 import { TaskRepository } from '@/infrastructure/task-repository';
 import { EventBus } from '@/types/core';
 import { TaskAggregate } from '@/domain/task-aggregate';
@@ -43,18 +42,20 @@ export class TaskService {
         data.createdBy
       );
 
+      // save()前にイベントを取得
+      const uncommittedEvents = task.getUncommittedEvents();
+
       // 集約を保存
       await this.taskRepository.save(task);
 
       // イベントを発行（プロジェクション更新など）
-      // 注意: saveの前に未コミットイベントを取得
-      const uncommittedEvents = task.getUncommittedEvents();
       await this.eventBus.publish(uncommittedEvents);
 
       Logger.info('Task created successfully', {
         taskId: task.id,
         title: data.title,
-        priority: data.priority
+        priority: data.priority,
+        eventCount: uncommittedEvents.length
       });
 
       return task.id;
@@ -87,8 +88,10 @@ export class TaskService {
       // ドメインロジックを使用して完了
       task.complete(data.completedBy, data.completionNote);
 
-      // 集約を保存
+      // save()前にイベントを取得
       const uncommittedEvents = task.getUncommittedEvents();
+
+      // 集約を保存
       await this.taskRepository.save(task);
 
       // イベントを発行
@@ -96,7 +99,8 @@ export class TaskService {
 
       Logger.info('Task completed successfully', {
         taskId,
-        completedBy: data.completedBy
+        completedBy: data.completedBy,
+        eventCount: uncommittedEvents.length
       });
 
     } catch (error) {
@@ -128,8 +132,10 @@ export class TaskService {
       // ドメインロジックを使用してキャンセル
       task.cancel(data.reason, data.cancelledBy);
 
-      // 集約を保存
+      // save()前にイベントを取得
       const uncommittedEvents = task.getUncommittedEvents();
+
+      // 集約を保存
       await this.taskRepository.save(task);
 
       // イベントを発行
@@ -138,7 +144,8 @@ export class TaskService {
       Logger.info('Task cancelled successfully', {
         taskId,
         reason: data.reason,
-        cancelledBy: data.cancelledBy
+        cancelledBy: data.cancelledBy,
+        eventCount: uncommittedEvents.length
       });
 
     } catch (error) {
@@ -176,16 +183,21 @@ export class TaskService {
       // ドメインロジックを使用して更新
       task.update(updates, updatedBy);
 
-      // 集約を保存（変更がない場合はイベントが生成されない）
+      // save()前にイベントを取得
       const uncommittedEvents = task.getUncommittedEvents();
+
       if (uncommittedEvents.length > 0) {
+        // 集約を保存（変更がある場合のみ）
         await this.taskRepository.save(task);
+        
+        // イベントを発行
         await this.eventBus.publish(uncommittedEvents);
       }
 
       Logger.info('Task updated successfully', {
         taskId,
-        hasChanges: uncommittedEvents.length > 0
+        hasChanges: uncommittedEvents.length > 0,
+        eventCount: uncommittedEvents.length
       });
 
     } catch (error) {
