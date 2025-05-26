@@ -125,6 +125,9 @@ export interface DomainEvent {
     saveEvents(aggregateId: string, events: DomainEvent[], expectedVersion: number): Promise<void>;
     getEvents(aggregateId: string, fromVersion?: number): Promise<DomainEvent[]>;
     getAllEvents(fromPosition?: number): Promise<DomainEvent[]>;
+    getCurrentVersion(client: any, aggregateId: string): Promise<number>;
+    aggregateExists(aggregateId: string): Promise<boolean>;
+    getStatistics(): Promise<any>;
   }
   
   /**
