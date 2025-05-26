@@ -1,0 +1,45 @@
+{
+    "name": "cqrs-task-manager-backend",
+    "version": "1.0.0",
+    "description": "CQRS Pattern Task Manager Backend",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc",
+        "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+        "start": "node dist/index.js",
+        "test": "jest",
+        "lint": "eslint src/**/*.ts",
+        "type-check": "tsc --noEmit"
+    },
+    "keywords": [
+        "cqrs",
+        "event-sourcing",
+        "typescript",
+        "node.js"
+    ],
+    "author": "Your Name",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.18.2",
+        "pg": "^8.11.3",
+        "uuid": "^9.0.1",
+        "cors": "^2.8.5",
+        "helmet": "^7.1.0",
+        "dotenv": "^16.3.1"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.21",
+        "@types/node": "^20.10.0",
+        "@types/pg": "^8.10.9",
+        "@types/uuid": "^9.0.7",
+        "@types/cors": "^2.8.17",
+        "@typescript-eslint/eslint-plugin": "^6.13.1",
+        "@typescript-eslint/parser": "^6.13.1",
+        "eslint": "^8.54.0",
+        "jest": "^29.7.0",
+        "@types/jest": "^29.5.8",
+        "ts-jest": "^29.1.1",
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^5.3.2"
+    }
+}
